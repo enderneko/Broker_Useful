@@ -1,0 +1,16 @@
+## Interface: 100002
+## Title: Broker: Useful
+## Version: r1
+## Author: 篠崎
+
+Libs/LibStub/LibStub.lua
+Libs/CallbackHandler-1.0/CallbackHandler-1.0.lua
+Libs/LibDataBroker-1.1/LibDataBroker-1.1.lua
+Libs/LibQTip-1.0/LibQTip-1.0.lua
+
+Modules/Bags.lua
+Modules/DateAndTime.lua
+Modules/Durability.lua
+Modules/Location.lua
+Modules/LootSpec.lua
+Modules/SystemInfo.lua

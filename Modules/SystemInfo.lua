@@ -59,7 +59,6 @@ end
 C_Timer.NewTicker(2, UpdateFPS)
 
 -- memory
-local lastUpdate = 0
 local function FormatMemory(n)
     local units, i = {"kb", "mb", "gb"}, 1
     n = max(n,0)
@@ -67,24 +66,45 @@ local function FormatMemory(n)
         n = n / 1024
         i = i + 1
     end
-    return ("%0."..(i == 1 and 0 or 1).."f"):format(n), units[i]
+    return tonumber(("%0."..(i == 1 and 0 or 1).."f"):format(n)), units[i]
 end
+
+local memoryUpdater = CreateFrame("Frame")
+memoryUpdater:Hide()
+
+local lastUpdate, elapsedTime = 0, 0
+local addonIndex, addonNum = 1, 0
+local total, unit = 0
+
+memoryUpdater:SetScript("OnUpdate", function(self, elapsed)
+    if addonIndex > addonNum then
+        memoryUpdater:Hide()
+
+        total, unit = FormatMemory(total)
+        memory = "|cffffffff"..total.."|r"..unit
+        dataObj.text = netStat.." "..fps.." "..memory
+
+        return
+    end
+
+    elapsedTime = elapsedTime + elapsed
+    if elapsedTime > 0.02 then
+        elapsedTime = 0
+    
+        total = total + GetAddOnMemoryUsage(addonIndex)
+        -- print(addonIndex, total)
+        addonIndex = addonIndex + 1
+    end
+end)
 
 local function UpdateMemory()
-    if GetTime() - lastUpdate < 30 then return end
+    if GetTime() - lastUpdate < 59 then return end
     lastUpdate = GetTime()
-
-    local total, unit = 0
-    for i = 1, GetNumAddOns() do
-        total = total + GetAddOnMemoryUsage(i)
-    end
-    total, unit = FormatMemory(total)
-
-    memory = "|cffffffff"..total.."|r"..unit
-    dataObj.text = netStat.." "..fps.." "..memory
+    addonIndex = 1
+    memoryUpdater:Show()
 end
 hooksecurefunc("UpdateAddOnMemoryUsage", UpdateMemory)
-C_Timer.NewTicker(30, function()
+C_Timer.NewTicker(60, function()
     if InCombatLockdown() or IsFalling() then return end
     UpdateAddOnMemoryUsage()
 end)
@@ -95,5 +115,6 @@ f:RegisterEvent("PLAYER_LOGIN")
 f:SetScript("OnEvent", function()
     UpdateNetStat()
     UpdateFPS()
+    addonNum = GetNumAddOns()
     UpdateAddOnMemoryUsage()
 end)
